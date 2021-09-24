@@ -1,4 +1,5 @@
 import ERIS from "eris";
+import { TwitterApi } from "twitter-api-v2";
 import { DiscordBot } from "./bot/DiscordBot";
 import { ConfigReader } from "./bot/ConfigReader";
 
@@ -6,6 +7,8 @@ const configReader = new ConfigReader();
 
 const erisClient = new ERIS.Client(configReader.readDiscordToken());
 
-const bot = new DiscordBot(erisClient);
+const twitterClient = new TwitterApi(configReader.readTwitterToken());
+
+const bot = new DiscordBot(erisClient, twitterClient);
 
 bot.start();

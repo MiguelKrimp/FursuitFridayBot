@@ -1,3 +1,10 @@
 export interface Auth {
-  discordToken?: string;
+  discord: {
+    token?: string;
+  };
+  twitter: TwitterAuth;
+}
+
+export interface TwitterAuth {
+  bearerToken: string;
 }

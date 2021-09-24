@@ -1,32 +1,77 @@
-import * as ERIS from "eris";
+import ERIS from "eris";
+import { TwitterApi } from "twitter-api-v2";
+import * as Commands from "../commands";
+import { ShowRecentCommand } from "../commands";
+import { AbstractCommand } from "../commands/AbstractCommand";
 
 export class DiscordBot {
-  private client: ERIS.Client;
+  private _discordClient: ERIS.Client;
+  private _twitterClient: TwitterApi;
+  private commands: Map<string, AbstractCommand> = new Map();
+  static readonly BOT_PREFIX: string = "!fsf";
 
-  constructor(client: ERIS.Client) {
-    this.client = client;
+  constructor(discordClient: ERIS.Client, twitterClient: TwitterApi) {
+    this._discordClient = discordClient;
+    this._twitterClient = twitterClient;
+  }
+
+  get discordClient(): ERIS.Client {
+    return this._discordClient;
+  }
+
+  get twitterClient(): TwitterApi {
+    return this._twitterClient;
   }
 
   start() {
-    this.intilializeListeners();
-    this.client.connect();
+    this.instantiateCommands();
+    this.initializeListeners();
+    this._discordClient.connect();
   }
 
-  private intilializeListeners() {
-    this.client.on("ready", async () => {
+  private initializeListeners() {
+    this._discordClient.on("ready", async () => {
       console.log("Connected");
     });
 
-    this.client.on("messageCreate", async (msg) => {
-      if (msg.author.id !== this.client.user.id) {
-        console.log(msg.content);
+    this._discordClient.on("messageCreate", async (msg) => {
+      if (msg.author.id === this._discordClient.user.id) {
+        return;
+      }
 
-        await this.client.createMessage(msg.channel.id, "Echo: " + msg.content);
+      if (!msg.content.startsWith(DiscordBot.BOT_PREFIX)) {
+        return;
+      }
+
+      const fullCommand = msg.content.substring(DiscordBot.BOT_PREFIX.length);
+
+      const commandSplits = fullCommand.split(/\s/).filter((s) => s.length > 0);
+      const commandName = commandSplits[0];
+
+      const command = this.commands.get(commandName);
+
+      if (command) {
+        console.log(`${msg.author.username} used command '${fullCommand}'`);
+
+        try {
+          command.run(this, msg, commandSplits.slice(1));
+        } catch (e) {
+          console.log(e);
+        }
+      } else {
+        new ShowRecentCommand().run(this, msg, commandSplits);
       }
     });
 
-    this.client.on("error", (e) => {
+    this._discordClient.on("error", (e) => {
       console.log(e);
+    });
+  }
+
+  private instantiateCommands() {
+    Object.entries(Commands).forEach(([_, c]) => {
+      const command = new c();
+      this.commands.set(command.id, command);
     });
   }
 }
