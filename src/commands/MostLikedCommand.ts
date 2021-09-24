@@ -33,8 +33,6 @@ export class MostLikedCommand extends AbstractCommand {
         (a.public_metrics?.like_count || 0)
     );
 
-    console.log(tweets[0].public_metrics);
-
     for (let i = 0; i < maxResults; i++) {
       const tweet = tweets[i];
       const url = `https://twitter.com/i/web/status/${tweet.id}`;
