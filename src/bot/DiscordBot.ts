@@ -3,7 +3,10 @@ import { TwitterApi } from "twitter-api-v2";
 import * as Commands from "../commands";
 import { ShowRecentCommand } from "../commands";
 import { AbstractCommand } from "../commands/AbstractCommand";
+import { Logger } from "../logging/Logger";
 import { TwitterError } from "../types/Error";
+
+const logger = new Logger("DiscordBot");
 
 export class DiscordBot {
   private _discordClient: ERIS.Client;
@@ -32,7 +35,7 @@ export class DiscordBot {
 
   private initializeListeners() {
     this._discordClient.on("ready", async () => {
-      console.log("Connected");
+      logger.info("Connected");
     });
 
     this._discordClient.on("messageCreate", async (msg) => {
@@ -58,19 +61,23 @@ export class DiscordBot {
         const command = this.commands.get(commandName);
 
         if (command) {
-          console.log(`${msg.author.username} used command '${fullCommand}'`);
+          logger.info(`${msg.author.username} used command '${fullCommand}'`);
 
           try {
             command.run(this, msg, commandSplits.slice(1));
           } catch (e) {
             if (e instanceof TwitterError) {
               // TODO proper logging to discord
-              console.log(e.internalError);
+              logger.error(`${e.internalError}`);
+            } else {
+              logger.error(`${e}`);
             }
-
-            console.log(e);
           }
         } else {
+          logger.warn(
+            `${msg.author.username} used unknown command '${fullCommand}'`
+          );
+
           let errorMessage = `Unknown command '${commandName}'. Please use one of the known commands:`;
           this.commands.forEach((c) => `\n - ${c.id}`);
           this.discordClient.createMessage(msg.channel.id, errorMessage);
@@ -81,13 +88,14 @@ export class DiscordBot {
     });
 
     this._discordClient.on("error", (e) => {
-      console.log(e);
+      logger.error(`${e}`);
     });
   }
 
   private instantiateCommands() {
     Object.entries(Commands).forEach(([_, c]) => {
       const command = new c();
+      logger.info(`Create command ${command.id}`);
       this.commands.set(command.id, command);
     });
   }
