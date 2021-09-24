@@ -1,5 +1,5 @@
 import fs from "fs-extra";
-import { Auth, TwitterAuth } from "../configTypes/Auth";
+import { Auth, TwitterAuth } from "../types/Auth";
 
 export class ConfigReader {
   readDiscordToken(): string {

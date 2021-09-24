@@ -1,6 +1,6 @@
 import Eris from "eris";
-import { TwitterApiRequestError } from "twitter-api-v2";
 import { DiscordBot } from "../bot/DiscordBot";
+import { TwitterError } from "../types/Error";
 import { AbstractCommand } from "./AbstractCommand";
 
 export class ShowRecentCommand extends AbstractCommand {
@@ -14,14 +14,21 @@ export class ShowRecentCommand extends AbstractCommand {
     params: string[]
   ) {
     let maxResults = 1;
-    if (+params[0] && +params[0] < 10) {
+    if (+params[0]) {
       maxResults = +params[0];
+      if (maxResults > 10) {
+        maxResults = 10;
+      }
     }
 
-    const response = await bot.twitterClient.search("fursuitfriday", {
-      "tweet.fields": ["lang"],
-      max_results: 10,
-    });
+    const response = await bot.twitterClient
+      .search("fursuitfriday", {
+        "tweet.fields": ["lang"],
+        max_results: 10,
+      })
+      .catch((e) => {
+        throw new TwitterError(e);
+      });
 
     for (let i = 0; i < maxResults; i++) {
       const tweet = response.data.data[i];

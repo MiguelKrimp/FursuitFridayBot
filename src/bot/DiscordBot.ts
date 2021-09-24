@@ -3,6 +3,7 @@ import { TwitterApi } from "twitter-api-v2";
 import * as Commands from "../commands";
 import { ShowRecentCommand } from "../commands";
 import { AbstractCommand } from "../commands/AbstractCommand";
+import { TwitterError } from "../types/Error";
 
 export class DiscordBot {
   private _discordClient: ERIS.Client;
@@ -43,23 +44,39 @@ export class DiscordBot {
         return;
       }
 
-      const fullCommand = msg.content.substring(DiscordBot.BOT_PREFIX.length);
+      const fullCommand = msg.content
+        .substring(DiscordBot.BOT_PREFIX.length)
+        .trim();
 
-      const commandSplits = fullCommand.split(/\s/).filter((s) => s.length > 0);
-      const commandName = commandSplits[0];
+      if (fullCommand) {
+        const commandSplits = fullCommand
+          .split(/\s/)
+          .filter((s) => s.length > 0);
 
-      const command = this.commands.get(commandName);
+        const commandName = commandSplits[0];
 
-      if (command) {
-        console.log(`${msg.author.username} used command '${fullCommand}'`);
+        const command = this.commands.get(commandName);
 
-        try {
-          command.run(this, msg, commandSplits.slice(1));
-        } catch (e) {
-          console.log(e);
+        if (command) {
+          console.log(`${msg.author.username} used command '${fullCommand}'`);
+
+          try {
+            command.run(this, msg, commandSplits.slice(1));
+          } catch (e) {
+            if (e instanceof TwitterError) {
+              // TODO proper logging to discord
+              console.log(e.internalError);
+            }
+
+            console.log(e);
+          }
+        } else {
+          let errorMessage = `Unknown command '${commandName}'. Please use one of the known commands:`;
+          this.commands.forEach((c) => `\n - ${c.id}`);
+          this.discordClient.createMessage(msg.channel.id, errorMessage);
         }
       } else {
-        new ShowRecentCommand().run(this, msg, commandSplits);
+        new ShowRecentCommand().run(this, msg, []);
       }
     });
 
