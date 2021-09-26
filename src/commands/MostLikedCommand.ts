@@ -16,6 +16,17 @@ export class MostLikedCommand extends AbstractCommand {
   ) {
     const maxResults = getMaxResults(params[0]);
 
+    const tweets = await this.getMostLikedTweets(bot, maxResults);
+
+    for (let i = 0; i < maxResults; i++) {
+      const tweet = tweets[i];
+      const url = `https://twitter.com/i/web/status/${tweet.id}`;
+
+      bot.discordClient.createMessage(msg.channel.id, url);
+    }
+  }
+
+  async getMostLikedTweets(bot: DiscordBot, resultCount: number) {
     const response = await bot.twitterClient.v2
       .search("fursuitfriday", {
         "tweet.fields": ["public_metrics"],
@@ -33,11 +44,6 @@ export class MostLikedCommand extends AbstractCommand {
         (a.public_metrics?.like_count || 0)
     );
 
-    for (let i = 0; i < maxResults; i++) {
-      const tweet = tweets[i];
-      const url = `https://twitter.com/i/web/status/${tweet.id}`;
-
-      bot.discordClient.createMessage(msg.channel.id, url);
-    }
+    return tweets.slice(0, resultCount);
   }
 }
