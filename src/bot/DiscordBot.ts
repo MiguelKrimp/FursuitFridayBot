@@ -79,7 +79,7 @@ export class DiscordBot {
           );
 
           let errorMessage = `Unknown command '${commandName}'. Please use one of the known commands:`;
-          this.commands.forEach((c) => `\n - ${c.id}`);
+          this.commands.forEach((c) => (errorMessage += `\n - ${c.id}`));
           this.discordClient.createMessage(msg.channel.id, errorMessage);
         }
       } else {

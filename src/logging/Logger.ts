@@ -8,7 +8,7 @@ export class Logger {
   private log(message: string, level: "Info" | "Warning" | "Error") {
     const timeStamp = new Date().toISOString();
 
-    console.log(`${timeStamp}\t - ${this.name}\t\t\t\t: ${level}:\t${message}`);
+    console.log(`${timeStamp}\t - ${this.name}\t\t: ${level}:\t\t${message}`);
   }
 
   info(message: string) {
