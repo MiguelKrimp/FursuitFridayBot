@@ -1,5 +1,5 @@
 import Eris from "eris";
-import { Job, scheduleJob } from "node-schedule";
+import { cancelJob, Job, scheduleJob } from "node-schedule";
 import { MostLikedCommand } from ".";
 import { DiscordBot } from "../bot/DiscordBot";
 import { Logger } from "../logging/Logger";
@@ -12,8 +12,10 @@ const logger = new Logger("ScheduleCommand");
 export class ScheduleCommand extends AbstractCommand {
   private job?: Job;
 
+  private channels: string[] = [];
+
   constructor() {
-    super("schedule");
+    super("schedule2");
   }
 
   async run(
@@ -21,15 +23,25 @@ export class ScheduleCommand extends AbstractCommand {
     msg: Eris.Message<Eris.PossiblyUncachedTextableChannel>,
     _params: string[]
   ) {
-    if (this.job) {
-      this.job.cancel();
-      this.job = undefined;
+    const index = this.channels.indexOf(msg.channel.id);
+    if (index >= 0) {
+      this.channels.splice(index, 1);
+
       bot.discordClient.createMessage(
         msg.channel.id,
         "Automatic posting stopped"
       );
     } else {
-      this.job = scheduleJob("0 0 18 * * 4", async () => {
+      this.channels.push(msg.channel.id);
+
+      bot.discordClient.createMessage(
+        msg.channel.id,
+        "Automatic posting started"
+      );
+    }
+
+    if (this.channels.length > 0) {
+      this.job = scheduleJob("weeklyPost", "0 0 18 * * 4", async () => {
         const mostLikedCmd = new MostLikedCommand();
         try {
           const tweets = await mostLikedCmd.getMostLikedTweets(bot, tweetCount);
@@ -43,17 +55,16 @@ export class ScheduleCommand extends AbstractCommand {
             const tweet = tweets[i];
             const url = `https://twitter.com/i/web/status/${tweet.id}`;
 
-            bot.discordClient.createMessage(msg.channel.id, url);
+            for (const channelId of this.channels) {
+              bot.discordClient.createMessage(channelId, url);
+            }
           }
         } catch (e) {
           logger.error(`An error occured: ${e}`);
         }
       });
-
-      bot.discordClient.createMessage(
-        msg.channel.id,
-        "Automatic posting started"
-      );
+    } else {
+      this.job?.cancel();
     }
   }
 }
