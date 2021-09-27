@@ -15,7 +15,7 @@ export class ScheduleCommand extends AbstractCommand {
   private channels: string[] = [];
 
   constructor() {
-    super("schedule2");
+    super("schedule");
   }
 
   async run(
