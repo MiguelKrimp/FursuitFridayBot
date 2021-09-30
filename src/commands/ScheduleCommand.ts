@@ -41,7 +41,7 @@ export class ScheduleCommand extends AbstractCommand {
     }
 
     if (this.channels.length > 0) {
-      this.job = scheduleJob("weeklyPost", "0 0 18 * * 4", async () => {
+      this.job = scheduleJob("weeklyPost", "0 0 18 * * 5", async () => {
         const mostLikedCmd = new MostLikedCommand();
         try {
           const tweets = await mostLikedCmd.getMostLikedTweets(bot, tweetCount);
