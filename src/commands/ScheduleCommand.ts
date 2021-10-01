@@ -42,7 +42,7 @@ export class ScheduleCommand extends AbstractCommand {
 
     if (this.channels.length > 0) {
       this.job?.cancel();
-      this.job = scheduleJob("weeklyPost", "0 * * * * *", async () => {
+      this.job = scheduleJob("weeklyPost", "0 0 18 * * 5", async () => {
         const mostLikedCmd = new MostLikedCommand();
         try {
           const tweets = await mostLikedCmd.getMostLikedTweets(bot, tweetCount);
