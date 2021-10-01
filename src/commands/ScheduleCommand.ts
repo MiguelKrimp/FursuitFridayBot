@@ -41,21 +41,20 @@ export class ScheduleCommand extends AbstractCommand {
     }
 
     if (this.channels.length > 0) {
-      this.job = scheduleJob("weeklyPost", "0 0 18 * * 5", async () => {
+      this.job?.cancel();
+      this.job = scheduleJob("weeklyPost", "0 * * * * *", async () => {
         const mostLikedCmd = new MostLikedCommand();
         try {
           const tweets = await mostLikedCmd.getMostLikedTweets(bot, tweetCount);
 
-          bot.discordClient.createMessage(
-            msg.channel.id,
-            "Look at all this beautiful fur! ʕ·ᴥ·ʔ"
-          );
-
-          for (let i = 0; i < tweetCount; i++) {
-            const tweet = tweets[i];
-            const url = `https://twitter.com/i/web/status/${tweet.id}`;
-
-            for (const channelId of this.channels) {
+          for (const channelId of this.channels) {
+            bot.discordClient.createMessage(
+              channelId,
+              "Look at all this beautiful fur! ʕ·ᴥ·ʔ"
+            );
+            for (let i = 0; i < tweetCount; i++) {
+              const tweet = tweets[i];
+              const url = `https://twitter.com/i/web/status/${tweet.id}`;
               bot.discordClient.createMessage(channelId, url);
             }
           }
