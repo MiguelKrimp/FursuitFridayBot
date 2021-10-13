@@ -1,4 +1,4 @@
-import ERIS from "eris";
+import ERIS, { PrivateChannel } from "eris";
 import { TwitterApi } from "twitter-api-v2";
 import * as Commands from "../commands";
 import { ShowRecentCommand } from "../commands";
@@ -43,48 +43,15 @@ export class DiscordBot {
         return;
       }
 
+      if (msg.channel instanceof PrivateChannel) {
+        this.onPrivateMessage(msg);
+      }
+
       if (!msg.content.startsWith(DiscordBot.BOT_PREFIX)) {
         return;
       }
 
-      const fullCommand = msg.content
-        .substring(DiscordBot.BOT_PREFIX.length)
-        .trim();
-
-      if (fullCommand) {
-        const commandSplits = fullCommand
-          .split(/\s/)
-          .filter((s) => s.length > 0);
-
-        const commandName = commandSplits[0];
-
-        const command = this.commands.get(commandName);
-
-        if (command) {
-          logger.info(`${msg.author.username} used command '${fullCommand}'`);
-
-          try {
-            command.run(this, msg, commandSplits.slice(1));
-          } catch (e) {
-            if (e instanceof TwitterError) {
-              // TODO proper logging to discord
-              logger.error(`${e.internalError}`);
-            } else {
-              logger.error(`${e}`);
-            }
-          }
-        } else {
-          logger.warn(
-            `${msg.author.username} used unknown command '${fullCommand}'`
-          );
-
-          let errorMessage = `Unknown command '${commandName}'. Please use one of the known commands:`;
-          this.commands.forEach((c) => (errorMessage += `\n - ${c.id}`));
-          this.discordClient.createMessage(msg.channel.id, errorMessage);
-        }
-      } else {
-        new ShowRecentCommand().run(this, msg, []);
-      }
+      this.onCommandMessage(msg);
     });
 
     this._discordClient.on("error", (e) => {
@@ -98,5 +65,52 @@ export class DiscordBot {
       logger.info(`Create command ${command.id}`);
       this.commands.set(command.id, command);
     });
+  }
+
+  private async onPrivateMessage(
+    msg: ERIS.Message<ERIS.PossiblyUncachedTextableChannel>
+  ) {
+    logger.info("Direct message received");
+  }
+
+  private async onCommandMessage(
+    msg: ERIS.Message<ERIS.PossiblyUncachedTextableChannel>
+  ) {
+    const fullCommand = msg.content
+      .substring(DiscordBot.BOT_PREFIX.length)
+      .trim();
+
+    if (fullCommand) {
+      const commandSplits = fullCommand.split(/\s/).filter((s) => s.length > 0);
+
+      const commandName = commandSplits[0];
+
+      const command = this.commands.get(commandName);
+
+      if (command) {
+        logger.info(`${msg.author.username} used command '${fullCommand}'`);
+
+        try {
+          command.run(this, msg, commandSplits.slice(1));
+        } catch (e) {
+          if (e instanceof TwitterError) {
+            // TODO proper logging to discord
+            logger.error(`${e.internalError}`);
+          } else {
+            logger.error(`${e}`);
+          }
+        }
+      } else {
+        logger.warn(
+          `${msg.author.username} used unknown command '${fullCommand}'`
+        );
+
+        let errorMessage = `Unknown command '${commandName}'. Please use one of the known commands:`;
+        this.commands.forEach((c) => (errorMessage += `\n - ${c.id}`));
+        this.discordClient.createMessage(msg.channel.id, errorMessage);
+      }
+    } else {
+      new ShowRecentCommand().run(this, msg, []);
+    }
   }
 }
