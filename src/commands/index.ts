@@ -1,4 +1,2 @@
-export * from "./ShowRecentCommand";
-export * from "./MostLikedCommand";
-export * from "./SubscribeCommand";
-export * from "./HelpCommand";
+export * from "./Commands";
+export * from "./CommandFactory";

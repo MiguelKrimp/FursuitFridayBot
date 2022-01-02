@@ -1,8 +1,6 @@
 import ERIS, { PrivateChannel } from "eris";
 import { TwitterApi } from "twitter-api-v2";
-import * as Commands from "../commands";
-import { ShowRecentCommand } from "../commands";
-import { AbstractCommand } from "../commands/AbstractCommand";
+import { CommandFactory, ShowRecentCommand } from "../commands";
 import { Logger } from "../logging/Logger";
 import { TwitterError } from "../types/Error";
 
@@ -11,12 +9,17 @@ const logger = new Logger("DiscordBot");
 export class DiscordBot {
   private _discordClient: ERIS.Client;
   private _twitterClient: TwitterApi;
-  private commands: Map<string, AbstractCommand> = new Map();
+  private commandFactory: CommandFactory;
   static readonly BOT_PREFIX: string = "!fsf";
 
-  constructor(discordClient: ERIS.Client, twitterClient: TwitterApi) {
+  constructor(
+    discordClient: ERIS.Client,
+    twitterClient: TwitterApi,
+    commandFactory: CommandFactory
+  ) {
     this._discordClient = discordClient;
     this._twitterClient = twitterClient;
+    this.commandFactory = commandFactory;
   }
 
   get discordClient(): ERIS.Client {
@@ -28,7 +31,6 @@ export class DiscordBot {
   }
 
   start() {
-    this.instantiateCommands();
     this.initializeListeners();
     this._discordClient.connect();
   }
@@ -59,14 +61,6 @@ export class DiscordBot {
     });
   }
 
-  private instantiateCommands() {
-    Object.entries(Commands).forEach(([_, c]) => {
-      const command = new c();
-      logger.info(`Create command ${command.id}`);
-      this.commands.set(command.id, command);
-    });
-  }
-
   private async onPrivateMessage(
     msg: ERIS.Message<ERIS.PossiblyUncachedTextableChannel>
   ) {
@@ -85,7 +79,7 @@ export class DiscordBot {
 
       const commandName = commandSplits[0];
 
-      const command = this.commands.get(commandName);
+      const command = this.commandFactory.getCommand(commandName);
 
       if (command) {
         logger.info(`${msg.author.username} used command '${fullCommand}'`);
@@ -115,8 +109,6 @@ export class DiscordBot {
   }
 
   listCommands(): string {
-    let commands = "";
-    this.commands.forEach((c) => (commands += `\n - ${c.id}`));
-    return commands;
+    return this.commandFactory.listCommands();
   }
 }
