@@ -12,7 +12,7 @@ export class HelpCommand extends AbstractCommand {
     msg: Eris.Message<Eris.PossiblyUncachedTextableChannel>,
     _params: string[]
   ) {
-    const help = `Use one the following commands:${bot.listCommands()}`;
+    const help = `Type !fsf followed by one of these commands:${bot.listCommands()}`;
 
     bot.discordClient.createMessage(msg.channel.id, help);
   }
