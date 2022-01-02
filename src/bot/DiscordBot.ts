@@ -105,12 +105,18 @@ export class DiscordBot {
           `${msg.author.username} used unknown command '${fullCommand}'`
         );
 
-        let errorMessage = `Unknown command '${commandName}'. Please use one of the known commands:`;
-        this.commands.forEach((c) => (errorMessage += `\n - ${c.id}`));
+        let errorMessage = `Unknown command '${commandName}'. Please use one of the known commands:${this.listCommands()}`;
+
         this.discordClient.createMessage(msg.channel.id, errorMessage);
       }
     } else {
       new ShowRecentCommand().run(this, msg, []);
     }
+  }
+
+  listCommands(): string {
+    let commands = "";
+    this.commands.forEach((c) => (commands += `\n - ${c.id}`));
+    return commands;
   }
 }

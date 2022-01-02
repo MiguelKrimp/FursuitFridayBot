@@ -1,3 +1,4 @@
 export * from "./ShowRecentCommand";
 export * from "./MostLikedCommand";
-export * from "./ScheduleCommand";
+export * from "./SubscribeCommand";
+export * from "./HelpCommand";

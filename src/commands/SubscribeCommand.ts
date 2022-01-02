@@ -9,13 +9,13 @@ const tweetCount = 3;
 
 const logger = new Logger("ScheduleCommand");
 
-export class ScheduleCommand extends AbstractCommand {
+export class SubscribeCommand extends AbstractCommand {
   private job?: Job;
 
   private channels: string[] = [];
 
   constructor() {
-    super("schedule");
+    super("subscribe");
   }
 
   async run(
