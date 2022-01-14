@@ -1,21 +1,21 @@
 import Eris from "eris";
-import { cancelJob, Job, scheduleJob } from "node-schedule";
-import { MostLikedCommand } from ".";
+import { Job, scheduleJob } from "node-schedule";
 import { DiscordBot } from "../bot/DiscordBot";
-import { Logger } from "../logging/Logger";
+import { getDefaultLogger } from "../logging";
 import { AbstractCommand } from "./AbstractCommand";
+import { MostLikedCommand } from "./MostLikedCommand";
 
 const tweetCount = 3;
 
-const logger = new Logger("ScheduleCommand");
+const logger = getDefaultLogger("ScheduleCommand");
 
 export class SubscribeCommand extends AbstractCommand {
   private job?: Job;
 
   private channels: string[] = [];
 
-  constructor() {
-    super("subscribe");
+  inititalize(bot: DiscordBot): void {
+    this.channels = bot.readFsfSubscriptions();
   }
 
   async run(
@@ -29,21 +29,22 @@ export class SubscribeCommand extends AbstractCommand {
 
       bot.discordClient.createMessage(
         msg.channel.id,
-        "Automatic posting stopped"
+        "You subscribed to the Best of Fursuitsuit Friday!"
       );
     } else {
       this.channels.push(msg.channel.id);
 
       bot.discordClient.createMessage(
         msg.channel.id,
-        "Automatic posting started"
+        "You unsubscribed from the Best of Fursuit Friday!"
       );
     }
+    bot.writeFsfSubscriptions(this.channels);
 
+    this.job?.cancel();
     if (this.channels.length > 0) {
-      this.job?.cancel();
       this.job = scheduleJob("weeklyPost", "0 0 18 * * 5", async () => {
-        const mostLikedCmd = new MostLikedCommand();
+        const mostLikedCmd = new MostLikedCommand("");
         try {
           const tweets = await mostLikedCmd.getMostLikedTweets(bot, tweetCount);
 
@@ -62,8 +63,6 @@ export class SubscribeCommand extends AbstractCommand {
           logger.error(`An error occured: ${e}`);
         }
       });
-    } else {
-      this.job?.cancel();
     }
   }
 }

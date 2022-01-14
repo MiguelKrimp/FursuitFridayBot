@@ -8,6 +8,8 @@ export abstract class AbstractCommand {
     this.id = id;
   }
 
+  inititalize(bot: DiscordBot): void {}
+
   abstract run(
     bot: DiscordBot,
     msg: Eris.Message<Eris.PossiblyUncachedTextableChannel>,

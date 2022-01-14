@@ -3,10 +3,6 @@ import { DiscordBot } from "../bot/DiscordBot";
 import { AbstractCommand } from "./AbstractCommand";
 
 export class HelpCommand extends AbstractCommand {
-  constructor() {
-    super("help");
-  }
-
   async run(
     bot: DiscordBot,
     msg: Eris.Message<Eris.PossiblyUncachedTextableChannel>,

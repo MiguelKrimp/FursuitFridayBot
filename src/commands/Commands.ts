@@ -1,4 +1,11 @@
-export * from "./ShowRecentCommand";
-export * from "./MostLikedCommand";
-export * from "./SubscribeCommand";
-export * from "./HelpCommand";
+import { HelpCommand } from "./HelpCommand";
+import { MostLikedCommand } from "./MostLikedCommand";
+import { ShowRecentCommand } from "./ShowRecentCommand";
+import { SubscribeCommand } from "./SubscribeCommand";
+
+export const commands = {
+  help: HelpCommand,
+  mostLiked: MostLikedCommand,
+  recent: ShowRecentCommand,
+  subscribe: SubscribeCommand,
+};

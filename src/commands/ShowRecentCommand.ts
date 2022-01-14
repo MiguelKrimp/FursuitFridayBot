@@ -1,14 +1,10 @@
 import Eris from "eris";
 import { DiscordBot } from "../bot/DiscordBot";
-import { TwitterError } from "../types/Error";
+import { TwitterError } from "../config/Error";
 import { AbstractCommand } from "./AbstractCommand";
 import { getMaxResults } from "./Utils";
 
 export class ShowRecentCommand extends AbstractCommand {
-  constructor() {
-    super("recent");
-  }
-
   async run(
     bot: DiscordBot,
     msg: Eris.Message<Eris.PossiblyUncachedTextableChannel>,

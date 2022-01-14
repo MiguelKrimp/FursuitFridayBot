@@ -1,25 +1,30 @@
 import ERIS, { PrivateChannel } from "eris";
 import { TwitterApi } from "twitter-api-v2";
-import { CommandFactory, ShowRecentCommand } from "../commands";
-import { Logger } from "../logging/Logger";
-import { TwitterError } from "../types/Error";
+import { CommandFactory } from "../commands";
+import { TwitterError } from "../config/Error";
+import { ShowRecentCommand } from "../commands/ShowRecentCommand";
+import { getDefaultLogger } from "../logging";
+import { ConfigManager } from "./ConfigManager";
 
-const logger = new Logger("DiscordBot");
+const logger = getDefaultLogger("DiscordBot");
 
 export class DiscordBot {
   private _discordClient: ERIS.Client;
   private _twitterClient: TwitterApi;
   private commandFactory: CommandFactory;
+  private configManager: ConfigManager;
   static readonly BOT_PREFIX: string = "!fsf";
 
   constructor(
     discordClient: ERIS.Client,
     twitterClient: TwitterApi,
-    commandFactory: CommandFactory
+    commandFactory: CommandFactory,
+    configManager: ConfigManager
   ) {
     this._discordClient = discordClient;
     this._twitterClient = twitterClient;
     this.commandFactory = commandFactory;
+    this.configManager = configManager;
   }
 
   get discordClient(): ERIS.Client {
@@ -31,6 +36,7 @@ export class DiscordBot {
   }
 
   start() {
+    this.commandFactory.createCommands(this);
     this.initializeListeners();
     this._discordClient.connect();
   }
@@ -65,6 +71,10 @@ export class DiscordBot {
     msg: ERIS.Message<ERIS.PossiblyUncachedTextableChannel>
   ) {
     logger.info("Direct message received");
+    this._discordClient.createMessage(
+      msg.channel.id,
+      "Rawr X3 *nuzzles* How are you? *pounces on you* you're so warm o3o *notices you have a bulge* someone's happy! *nuzzles your necky wecky* ~murr~ hehe ;)"
+    );
   }
 
   private async onCommandMessage(
@@ -104,11 +114,19 @@ export class DiscordBot {
         this.discordClient.createMessage(msg.channel.id, errorMessage);
       }
     } else {
-      new ShowRecentCommand().run(this, msg, []);
+      new ShowRecentCommand("").run(this, msg, []);
     }
   }
 
   listCommands(): string {
     return this.commandFactory.listCommands();
+  }
+
+  readFsfSubscriptions(): string[] {
+    return this.configManager.readSubscriptions();
+  }
+
+  writeFsfSubscriptions(subs: string[]): void {
+    this.configManager.writeSubscriptions(subs);
   }
 }
