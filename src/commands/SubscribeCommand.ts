@@ -29,14 +29,14 @@ export class SubscribeCommand extends AbstractCommand {
 
       bot.discordClient.createMessage(
         msg.channel.id,
-        "You subscribed to the Best of Fursuitsuit Friday!"
+        "You unsubscribed from the Best of Fursuitsuit Friday!"
       );
     } else {
       this.channels.push(msg.channel.id);
 
       bot.discordClient.createMessage(
         msg.channel.id,
-        "You unsubscribed from the Best of Fursuit Friday!"
+        "You subscribed to the Best of Fursuitsuit Friday!"
       );
     }
     bot.writeFsfSubscriptions(this.channels);
