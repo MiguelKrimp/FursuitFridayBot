@@ -20,7 +20,10 @@ export abstract class AbstractLogger {
 
   protected createDefaultLogMessage(message: string, level: LogLevel): string {
     const timeStamp = new Date().toISOString();
-    return `${timeStamp} - ${this.name} - ${level}: ${message}`;
+    return `${timeStamp} - ${this.name.padEnd(25, " ")} - ${level.padEnd(
+      5,
+      " "
+    )}: ${message}`;
   }
 
   protected abstract internalLog(message: string, level: LogLevel): void;
